@@ -64,7 +64,7 @@ In order to not make this section complex, we will take a simple sentence consis
 
 **DECODER - PART**
 
-Now, we have undertsand about *Multi Head Self-Attention*, it is time to understand "*Multi head Cross-Attention.*", or, "*MCA*". In tensorflow architecture, we use cross-attention with the decoder part. In BERT, using source language input, *MCA* generates *K* and *V* vectors and generates *Q* vectors from the taget input language. 
+Now, we have undertsand about *Multi Head Self-Attention*, it is time to understand "*Multi head Cross-Attention.*", or, "*MCA*". In transformer architecture, we use cross-attention with the decoder part. In BERT, using source language input, *MCA* generates *K* and *V* vectors and generates *Q* vectors from the taget input language. 
 
 Beside how *Q*, *K*, and *V* vectors are produced the math behind cross-attention is similar to as self-attention, except that of step 3. The dot-ed product is added to look- ahead mask such that the query tokens cant look into calculate attention to future tokens. This step can be shown from below figure.
 ![look_ahead_mask](images/look_ahead_mask.png)
