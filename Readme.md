@@ -3,6 +3,7 @@
 In this blog, I will use the **BERT** architecture to perform translation from *Portuguese* to *English*. This blog provides a *comprehensive* guide to the entire training pipeline, encompassing *Data Preprocessing, Building the Model, Training the BERT Model, and Exporting the Trained Model.* The best aspect of this blog is that I have ensured to elucidate each code section thoroughly.
 
 ## A Brief Overview of the Transformer Architecture
+
 *Transformer* has emerged as a prominent subject of research in the realm of AI, particularly in *NLP*, since its introduction in the groundbreaking paper titled *Attention is All You Need*.
 
 <div align="center">
@@ -13,17 +14,18 @@ In this blog, I will use the **BERT** architecture to perform translation from *
 One crucial component of the transformer is the **Multi-Head Attention** mechanism. Let's take a moment to understand its theoretical aspects.
 
 ### Multi-Head Attention(*MHA*):
-Before diving into ""Multi-Head Attention" it is crucial to understand the meaning of *Attention.* In NLP or in ML in general, attention mechanism simply means how a given token is relevant or associated with other tokens. Lets us understand with an example: 
+
+Before diving into ""Multi-Head Attention" it is crucial to understand the meaning of *Attention.* In NLP or in ML in general, attention mechanism simply means how a given token is relevant or associated with other tokens. Lets us understand with an example:
+
 > *Ram is an university student. He loves programming.*
 
 Naturally, when we either read or listen to the above sentence our human mind is capable to understand that "He" is "Ram". Our mind in a way compute attention in order to associate how other tokens(including "He") is relevant to "He".  ***But how does attention mechanism solve this in the transformer?***
 
-Now, let us understand how does Transformer calculate the attention score for each of these tokens.  In the above sentence for each of the tokens *MHA* generates three trainable vectors known as "query(*q*),key(*k*),and key(*k*)". 
+Now, let us understand how does Transformer calculate the attention score for each of these tokens.  In the above sentence for each of the tokens *MHA* generates three trainable vectors known as "query(*q*),key(*k*),and key(*k*)".
 
-> What exactly are query, key, and values ? 
+> What exactly are query, key, and values ?
 
-In the above example, the question was how does attention mechanism finds a way to associate "He" with rest of the other tokens. Since, here the token "He" is considered to be a query information and all of the other tokens, including Query token, containing the whole informations is known as contectual information. "He" is called query token because it is looking to find relevancy from the whole context. And, "key" and "value" vectors are contextual information. But, if the both "key" and "value" represents contextual information, do they have same functions in the attention mechanism in *MHA* layer in the transformr. The "key" vectors and "query" vectors are used to calculate the attention weights(0 to 1). Then these attention weights are multiplied to the original contextual information, value vector, where we can get the association of each of the tokens with respect to other tokens. We will discuss the maths behind this in more details in later parts of this blog. 
-
+In the above example, the question was how does attention mechanism finds a way to associate "He" with rest of the other tokens. Since, here the token "He" is considered to be a query information and all of the other tokens, including Query token, containing the whole informations is known as contectual information. "He" is called query token because it is looking to find relevancy from the whole context. And, "key" and "value" vectors are contextual information. But, if the both "key" and "value" represents contextual information, do they have same functions in the attention mechanism in *MHA* layer in the transformr. The "key" vectors and "query" vectors are used to calculate the attention weights(0 to 1). Then these attention weights are multiplied to the original contextual information, value vector, where we can get the association of each of the tokens with respect to other tokens. We will discuss the maths behind this in more details in later parts of this blog.
 
 <!-- In transformer *k* and *v* represents contextual information and *q* represents query information. Let us come back to above question, how does a transformer associates the first token "Ram" with "he" in our above example ? In the first step attention mechanism looks how the first token is relevant to  each of the  other tokens. Here, we call the first token "Ram" as the query token where it is trying to find the relevance from the whole context. And the tokens which represents the whole context information represents the "*k*" and "*v*" vectors. So, the query token("Ram") will look into keys vectors of each of the tokens(inc "Ram") to calculate the attention weight. *In order to calculate the attention weight the query vector is dot producted-ed with all key vectos(including Query itself). Then the dot-preducted result is softmax-ed to obtain attention weight ranging from 0 to 1*.  -->
 
@@ -33,21 +35,19 @@ In the above example, the question was how does attention mechanism finds a way 
 
 We will start first by understanding self-attention used in transformer encoder. When both contextual and query information comes from same source then this is known as self-attention.
 
-In order to not make this section complex, we will take a simple sentence consisting of two words: 
+In order to not make this section complex, we will take a simple sentence consisting of two words:
+
 > Source Input: Blue(t1) sky(t2)
 
-
-
-1. **In the first step**, the input tokens are embedded and added positional information. In the transformer, we often use the jargon word `d_model` to represent the embedding dimension. After this process, our input will have a shape of *num_tokens × d_model* or *2 × d_model*. For now, we will represent this embedded input with **X**.  `X` is represented below. 
+1. **In the first step**, the input tokens are embedded and added positional information. In the transformer, we often use the jargon word `d_model` to represent the embedding dimension. After this process, our input will have a shape of *num_tokens × d_model* or *2 × d_model*. For now, we will represent this embedded input with **X**.  `X` is represented below.
 
 ![step 1](images/step1.png)
 
-
-2. **In the second step**, using input **X**, the *MHA* layer generates three vectors: **q**, **k**, and **v** by multiplying input **X** with trainable matrices **WQ**, **WV**, **WK**, respectively. An important thing to notice here is that the dimension of **q** and **k** should be the same. Here, in this example, we will assume that each of these vectors has a dimension of *num_tokens × d_k*, where "d_k" is the dimension of each token in these vectors.  This step is illustrated below: 
+2. **In the second step**, using input **X**, the *MHA* layer generates three vectors: **q**, **k**, and **v** by multiplying input **X** with trainable matrices **WQ**, **WV**, **WK**, respectively. An important thing to notice here is that the dimension of **q** and **k** should be the same. Here, in this example, we will assume that each of these vectors has a dimension of *num_tokens × d_k*, where "d_k" is the dimension of each token in these vectors.  This step is illustrated below:
 
 ![step 2](images/step2.png)
 
-3. **In the third step**, we calculate the dot product of each query vector with all key vectors. The dot-product matrix will have a shape of *num_tokens × num_tokens*. Then, the dot-product is softmax-ed, resulting in a probability distribution. This probability distribution provides the ***attention weight*** of how each token is relevant to others in the range of 0 to 1. 
+3. **In the third step**, we calculate the dot product of each query vector with all key vectors. The dot-product matrix will have a shape of *num_tokens × num_tokens*. Then, the dot-product is softmax-ed, resulting in a probability distribution. This probability distribution provides the ***attention weight*** of how each token is relevant to others in the range of 0 to 1.
 
 ![step 3](images/step3.png)
 
@@ -61,17 +61,21 @@ In order to not make this section complex, we will take a simple sentence consis
 
 ![step 5-2](images/step6.png)
 
+### The Decoder Component
 
-**DECODER - PART**
+The decoder takes two forms of input:
 
-<!-- Now, we have undertsand about *Multi Head Self-Attention*, it is time to understand "*Multi head Cross-Attention.*", or, "*MCA*". In transformer architecture, we use cross-attention with the decoder part. In BERT, using source language input, *MCA* generates *K* and *V* vectors and generates *Q* vectors from the taget input language. 
+- **Target Text**: नीलो अाकाश (*Supplied from Below*)
+- **Source Text**: Blue Sky (*Received from the Encoder*)
 
-Beside how *Q*, *K*, and *V* vectors are produced the math behind cross-attention is similar to as self-attention, except that of step 3. The dot-ed product is added to look- ahead mask such that the query tokens cant look into calculate attention to future tokens. This step can be shown from below figure.
-![look_ahead_mask](images/look_ahead_mask.png)
+The decoder architecture closely resembles that of the encoder but features two types of MHA layers: a) Self-Attention and b) Cross-Attention. The self-attention mechanism in the decoder employs a *Look-Ahead Mask*, ensuring that future tokens are not considered during training, thereby promoting model generalization.
 
-In the above figure we can see target t1 can't  calculate attanetion to future tokens(t2) from the targeted language. This makes sure that there is no cheating involved during the training process. 
+#### The Role of Look-Ahead Masks
 
+The mechanism of the MHA in the decoder largely mirrors that in the encoder, with the primary difference lying in the application of a look-ahead mask during the third step.
 
+![Look Ahead Mask](images/look_ahead_mask.png)
 
-***Here, in this document i explained the concepts behind the attention mechanism, inlcuding the mathematics behind this. Don't worry we have explain other part in a clear way in Bert.ipynb notebook([Here](BERT.ipynb)). There we have build transformer from scratch using tensorflow framework. I have also explained each of the code section.*** -->
+#### Understanding Cross-Attention
 
+Cross-Attention in the decoder allows the model to focus on relevant parts of the input sentence during translation. This is especially vital for tasks like machine translation where the context from the encoder needs to be integrated effectively to generate the correct translation in the target language.
